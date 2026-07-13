@@ -28,7 +28,16 @@ class UpdateBusinessHoursRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator): void {
-            foreach ($this->input('hours', []) as $day => $hour) {
+            $hours = $this->input('hours', []);
+            $activeDays = collect($hours)->filter(fn (array $hour) => (bool) ($hour['is_active'] ?? false));
+
+            if ($activeDays->isEmpty()) {
+                $validator->errors()->add('hours', 'Mindestens ein Wochentag muss buchbar sein.');
+
+                return;
+            }
+
+            foreach ($hours as $day => $hour) {
                 if (! ($hour['is_active'] ?? false)) {
                     continue;
                 }
@@ -66,11 +75,32 @@ class UpdateBusinessHoursRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $hours = $this->input('hours', []);
+        $normalized = [];
 
-        foreach ($hours as $day => $data) {
-            $hours[$day]['is_active'] = isset($data['is_active']) && $data['is_active'] === '1';
+        foreach (range(0, 6) as $day) {
+            $data = $hours[$day] ?? [];
+
+            $normalized[$day] = [
+                'is_active' => $this->isDayActive($data),
+                'opens_at' => $data['opens_at'] ?? '09:00',
+                'closes_at' => $data['closes_at'] ?? '17:00',
+            ];
         }
 
-        $this->merge(['hours' => $hours]);
+        $this->merge(['hours' => $normalized]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function isDayActive(array $data): bool
+    {
+        $value = $data['is_active'] ?? false;
+
+        if (is_array($value)) {
+            return in_array('1', $value, true) || in_array(1, $value, true);
+        }
+
+        return $value === '1' || $value === 1 || $value === true;
     }
 }
