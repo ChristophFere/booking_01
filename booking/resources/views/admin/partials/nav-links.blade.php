@@ -4,6 +4,7 @@
         ['route' => 'admin.appointments.index', 'label' => 'Termine', 'match' => 'admin.appointments.*'],
         ['route' => 'admin.business-hours.edit', 'label' => 'Öffnungszeiten', 'match' => 'admin.business-hours.*'],
         ['route' => 'admin.blocked-dates.index', 'label' => 'Gesperrte Tage', 'match' => 'admin.blocked-dates.*'],
+        ['route' => 'admin.settings.index', 'label' => 'Einstellungen', 'match' => 'admin.settings.*'],
     ];
 @endphp
 
