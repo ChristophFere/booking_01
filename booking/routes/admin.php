@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\AppointmentController;
 use App\Http\Controllers\Admin\AuthController;
@@ -21,6 +22,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('business-hours', [BusinessHourController::class, 'edit'])->name('business-hours.edit');
         Route::put('business-hours', [BusinessHourController::class, 'update'])->name('business-hours.update');
+
+        Route::get('services', [ServiceController::class, 'index'])->name('services.index');
+        Route::post('services', [ServiceController::class, 'store'])->name('services.store');
+        Route::get('services/{service}/edit', [ServiceController::class, 'edit'])->name('services.edit');
+        Route::put('services/{service}', [ServiceController::class, 'update'])->name('services.update');
+        Route::delete('services/{service}', [ServiceController::class, 'destroy'])->name('services.destroy');
 
         Route::get('blocked-dates', [BlockedDateController::class, 'index'])->name('blocked-dates.index');
         Route::post('blocked-dates', [BlockedDateController::class, 'store'])->name('blocked-dates.store');
