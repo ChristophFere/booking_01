@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
 use App\Models\BlockedDate;
 use App\Models\BusinessHour;
@@ -37,7 +38,7 @@ class BookingService
 
         $bookedAppointments = Appointment::query()
             ->whereDate('starts_at', $date)
-            ->whereIn('status', ['pending', 'confirmed'])
+            ->whereIn('status', [AppointmentStatus::Pending, AppointmentStatus::Confirmed])
             ->get(['starts_at', 'ends_at']);
 
         $slots = collect();
@@ -58,6 +59,12 @@ class BookingService
         }
 
         return $slots;
+    }
+
+    public function isSlotAvailable(Service $service, Carbon $startsAt): bool
+    {
+        return $this->getAvailableSlots($service, $startsAt->copy()->startOfDay())
+            ->contains(fn (Carbon $slot) => $slot->format('Y-m-d H:i') === $startsAt->format('Y-m-d H:i'));
     }
 
     public function isDateBlocked(Carbon $date): bool
