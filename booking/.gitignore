@@ -17,6 +17,13 @@
 /public/fonts-manifest.dev.json
 /public/hot
 /public/storage
+
+# Vite-Build: lokal erzeugen (npm run build), per Git auf Shared Hosting deployen
+/public/build/*
+!/public/build/manifest.json
+!/public/build/fonts-manifest.json
+!/public/build/assets/
+!/public/build/assets/**
 /storage/*.key
 /storage/pail
 /vendor

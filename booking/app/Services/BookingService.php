@@ -73,4 +73,36 @@ class BookingService
             ->whereDate('date', $date->toDateString())
             ->exists();
     }
+
+    /**
+     * Verfügbarkeit pro Tag für einen Monat (Kalenderansicht).
+     *
+     * @return array<string, array{available: bool, slots_count: int}>
+     */
+    public function getMonthAvailability(Service $service, int $year, int $month): array
+    {
+        $start = Carbon::createFromDate($year, $month, 1)->startOfDay();
+        $end = $start->copy()->endOfMonth();
+        $availability = [];
+
+        for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
+            if ($date->lt(today())) {
+                $availability[$date->format('Y-m-d')] = [
+                    'available' => false,
+                    'slots_count' => 0,
+                ];
+
+                continue;
+            }
+
+            $slots = $this->getAvailableSlots($service, $date);
+
+            $availability[$date->format('Y-m-d')] = [
+                'available' => $slots->isNotEmpty(),
+                'slots_count' => $slots->count(),
+            ];
+        }
+
+        return $availability;
+    }
 }
