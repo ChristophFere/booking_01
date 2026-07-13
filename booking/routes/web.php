@@ -14,4 +14,5 @@ Route::prefix('booking')->name('booking.')->group(function () {
     Route::post('/', [BookingController::class, 'store'])->name('store');
     Route::get('/success', [BookingController::class, 'success'])->name('success');
     Route::get('/slots', [BookingController::class, 'slots'])->name('slots');
+    Route::get('/calendar', [BookingController::class, 'calendar'])->name('calendar');
 });

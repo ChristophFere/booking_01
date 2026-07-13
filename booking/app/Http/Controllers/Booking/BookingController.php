@@ -82,4 +82,23 @@ class BookingController extends \App\Http\Controllers\Controller
             ])->values(),
         ]);
     }
+
+    public function calendar(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'service_id' => ['required', 'integer', 'exists:services,id'],
+            'year' => ['required', 'integer', 'min:2020', 'max:2100'],
+            'month' => ['required', 'integer', 'min:1', 'max:12'],
+        ]);
+
+        $service = Service::query()->active()->findOrFail($validated['service_id']);
+
+        return response()->json([
+            'days' => $this->bookingService->getMonthAvailability(
+                $service,
+                $validated['year'],
+                $validated['month'],
+            ),
+        ]);
+    }
 }
