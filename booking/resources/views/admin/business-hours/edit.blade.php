@@ -29,11 +29,12 @@
 
                         <div class="md:col-span-2">
                             <label class="inline-flex cursor-pointer items-center gap-2">
+                                <input type="hidden" name="hours[{{ $day['day_of_week'] }}][is_active]" value="0">
                                 <input
                                     type="checkbox"
                                     name="hours[{{ $day['day_of_week'] }}][is_active]"
                                     value="1"
-                        @checked((bool) old("hours.{$day['day_of_week']}.is_active", $day['is_active']))
+                                    @checked((bool) old("hours.{$day['day_of_week']}.is_active", $day['is_active']))
                                     class="day-toggle rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                                     data-day="{{ $day['day_of_week'] }}"
                                 >
@@ -87,8 +88,9 @@
 
             const sync = () => {
                 inputs.forEach(input => {
-                    input.disabled = !toggle.checked;
+                    input.readOnly = !toggle.checked;
                     input.classList.toggle('opacity-50', !toggle.checked);
+                    input.classList.toggle('pointer-events-none', !toggle.checked);
                 });
             };
 
