@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\AppointmentController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\BlockedDateController;
@@ -29,5 +30,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('appointments/{appointment}', [AppointmentController::class, 'show'])->name('appointments.show');
         Route::put('appointments/{appointment}', [AppointmentController::class, 'update'])->name('appointments.update');
         Route::delete('appointments/{appointment}', [AppointmentController::class, 'destroy'])->name('appointments.destroy');
+
+        Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
+        Route::put('settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password.update');
+        Route::put('settings/mail', [SettingsController::class, 'updateMail'])->name('settings.mail.update');
+        Route::post('settings/mail/test', [SettingsController::class, 'sendTestMail'])->name('settings.mail.test');
     });
 });
