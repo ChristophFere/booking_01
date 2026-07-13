@@ -12,19 +12,21 @@ class BusinessHourSeeder extends Seeder
      */
     public function run(): void
     {
-        $hours = [
-            ['day_of_week' => 1, 'opens_at' => '09:00', 'closes_at' => '17:00'],
-            ['day_of_week' => 2, 'opens_at' => '09:00', 'closes_at' => '17:00'],
-            ['day_of_week' => 3, 'opens_at' => '09:00', 'closes_at' => '17:00'],
-            ['day_of_week' => 4, 'opens_at' => '09:00', 'closes_at' => '17:00'],
-            ['day_of_week' => 5, 'opens_at' => '09:00', 'closes_at' => '15:00'],
+        $defaults = [
+            0 => ['opens_at' => '09:00', 'closes_at' => '17:00', 'is_active' => false],
+            1 => ['opens_at' => '09:00', 'closes_at' => '17:00', 'is_active' => true],
+            2 => ['opens_at' => '09:00', 'closes_at' => '17:00', 'is_active' => true],
+            3 => ['opens_at' => '09:00', 'closes_at' => '17:00', 'is_active' => true],
+            4 => ['opens_at' => '09:00', 'closes_at' => '17:00', 'is_active' => true],
+            5 => ['opens_at' => '09:00', 'closes_at' => '15:00', 'is_active' => true],
+            6 => ['opens_at' => '09:00', 'closes_at' => '17:00', 'is_active' => false],
         ];
 
-        foreach ($hours as $hour) {
-            BusinessHour::query()->create([
-                ...$hour,
-                'is_active' => true,
-            ]);
+        foreach ($defaults as $day => $hours) {
+            BusinessHour::query()->updateOrCreate(
+                ['day_of_week' => $day],
+                $hours,
+            );
         }
     }
 }

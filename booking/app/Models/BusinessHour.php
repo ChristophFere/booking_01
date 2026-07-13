@@ -15,6 +15,27 @@ use Illuminate\Database\Eloquent\Model;
 class BusinessHour extends Model
 {
     /**
+     * @return array<int, string>
+     */
+    public static function dayNames(): array
+    {
+        return [
+            0 => 'Sonntag',
+            1 => 'Montag',
+            2 => 'Dienstag',
+            3 => 'Mittwoch',
+            4 => 'Donnerstag',
+            5 => 'Freitag',
+            6 => 'Samstag',
+        ];
+    }
+
+    public function dayName(): string
+    {
+        return self::dayNames()[$this->day_of_week] ?? '';
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array
