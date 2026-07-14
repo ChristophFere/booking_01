@@ -13,14 +13,26 @@ use Illuminate\Support\Collection;
 class BookingService
 {
     /**
-     * Verfügbare Zeitslots für einen Tag und Service ermitteln.
+     * Tagesübersicht aller Slots inkl. Status für die Kalenderansicht.
      *
-     * @return Collection<int, Carbon>
+     * @return array{
+     *     blocked: bool,
+     *     blocked_reason: string|null,
+     *     slots: array<int, array{value: string, label: string, status: string}>
+     * }
      */
-    public function getAvailableSlots(Service $service, Carbon $date): Collection
+    public function getDaySlotsOverview(Service $service, Carbon $date): array
     {
-        if ($this->isDateBlocked($date)) {
-            return collect();
+        $blockedDate = BlockedDate::query()
+            ->whereDate('date', $date->toDateString())
+            ->first();
+
+        if ($blockedDate) {
+            return [
+                'blocked' => true,
+                'blocked_reason' => $blockedDate->reason ?: 'Dieser Tag ist gesperrt.',
+                'slots' => [],
+            ];
         }
 
         $businessHour = BusinessHour::query()
@@ -29,36 +41,75 @@ class BookingService
             ->first();
 
         if (! $businessHour) {
-            return collect();
+            return [
+                'blocked' => false,
+                'blocked_reason' => null,
+                'slots' => [],
+            ];
         }
 
         $slotDuration = $service->duration_minutes;
         $opensAt = $date->copy()->setTimeFromTimeString($businessHour->opens_at);
         $closesAt = $date->copy()->setTimeFromTimeString($businessHour->closes_at);
 
-        $bookedAppointments = Appointment::query()
+        $appointments = Appointment::query()
             ->whereDate('starts_at', $date)
             ->whereIn('status', [AppointmentStatus::Pending, AppointmentStatus::Confirmed])
-            ->get(['starts_at', 'ends_at']);
+            ->get(['starts_at', 'ends_at', 'status']);
 
-        $slots = collect();
+        $slots = [];
         $current = $opensAt->copy();
 
         while ($current->copy()->addMinutes($slotDuration)->lte($closesAt)) {
-            $slotEnd = $current->copy()->addMinutes($slotDuration);
+            if (! $current->isFuture()) {
+                $current->addMinutes($slotDuration);
 
-            $isBooked = $bookedAppointments->contains(function (Appointment $appointment) use ($current, $slotEnd) {
-                return $current->lt($appointment->ends_at) && $slotEnd->gt($appointment->starts_at);
-            });
-
-            if (! $isBooked && $current->isFuture()) {
-                $slots->push($current->copy());
+                continue;
             }
+
+            $slotEnd = $current->copy()->addMinutes($slotDuration);
+            $status = 'available';
+
+            foreach ($appointments as $appointment) {
+                if ($current->lt($appointment->ends_at) && $slotEnd->gt($appointment->starts_at)) {
+                    $status = $appointment->status === AppointmentStatus::Pending ? 'pending' : 'booked';
+
+                    break;
+                }
+            }
+
+            $slots[] = [
+                'value' => $current->format('Y-m-d H:i:s'),
+                'label' => $current->format('H:i').' Uhr',
+                'status' => $status,
+            ];
 
             $current->addMinutes($slotDuration);
         }
 
-        return $slots;
+        return [
+            'blocked' => false,
+            'blocked_reason' => null,
+            'slots' => $slots,
+        ];
+    }
+
+    /**
+     * Verfügbare Zeitslots für einen Tag und Service ermitteln.
+     *
+     * @return Collection<int, Carbon>
+     */
+    public function getAvailableSlots(Service $service, Carbon $date): Collection
+    {
+        $overview = $this->getDaySlotsOverview($service, $date);
+
+        if ($overview['blocked']) {
+            return collect();
+        }
+
+        return collect($overview['slots'])
+            ->filter(fn (array $slot) => $slot['status'] === 'available')
+            ->map(fn (array $slot) => Carbon::parse($slot['value']));
     }
 
     public function isSlotAvailable(Service $service, Carbon $startsAt): bool
@@ -77,7 +128,14 @@ class BookingService
     /**
      * Verfügbarkeit pro Tag für einen Monat (Kalenderansicht).
      *
-     * @return array<string, array{available: bool, slots_count: int}>
+     * @return array<string, array{
+     *     blocked: bool,
+     *     blocked_reason: string|null,
+     *     available: bool,
+     *     slots_count: int,
+     *     pending_count: int,
+     *     clickable: bool
+     * }>
      */
     public function getMonthAvailability(Service $service, int $year, int $month): array
     {
@@ -86,20 +144,33 @@ class BookingService
         $availability = [];
 
         for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
+            $dateKey = $date->format('Y-m-d');
+
             if ($date->lt(today())) {
-                $availability[$date->format('Y-m-d')] = [
+                $availability[$dateKey] = [
+                    'blocked' => false,
+                    'blocked_reason' => null,
                     'available' => false,
                     'slots_count' => 0,
+                    'pending_count' => 0,
+                    'clickable' => false,
                 ];
 
                 continue;
             }
 
-            $slots = $this->getAvailableSlots($service, $date);
+            $overview = $this->getDaySlotsOverview($service, $date);
+            $slots = collect($overview['slots']);
+            $availableCount = $slots->where('status', 'available')->count();
+            $pendingCount = $slots->where('status', 'pending')->count();
 
-            $availability[$date->format('Y-m-d')] = [
-                'available' => $slots->isNotEmpty(),
-                'slots_count' => $slots->count(),
+            $availability[$dateKey] = [
+                'blocked' => $overview['blocked'],
+                'blocked_reason' => $overview['blocked_reason'],
+                'available' => $availableCount > 0,
+                'slots_count' => $availableCount,
+                'pending_count' => $pendingCount,
+                'clickable' => ! $overview['blocked'] && $slots->isNotEmpty(),
             ];
         }
 
