@@ -53,7 +53,7 @@
 
                         <div class="mt-3 flex flex-wrap gap-3 text-xs text-slate-500">
                             <span class="inline-flex items-center gap-1"><span class="h-3 w-3 rounded bg-indigo-600"></span> Verfügbar</span>
-                            <span class="inline-flex items-center gap-1"><span class="h-3 w-3 rounded bg-amber-400"></span> Anfrage ausstehend</span>
+                            <span class="inline-flex items-center gap-1"><span class="h-3 w-3 rounded bg-amber-100 ring-1 ring-amber-200"></span> Anfrage ausstehend</span>
                             <span class="inline-flex items-center gap-1"><span class="h-3 w-3 rounded bg-rose-200 ring-1 ring-rose-300"></span> Gesperrt</span>
                             <span class="inline-flex items-center gap-1"><span class="h-3 w-3 rounded bg-white ring-1 ring-slate-200"></span> Nicht verfügbar</span>
                         </div>
@@ -198,9 +198,10 @@
                 let cell;
 
                 if (info.blocked) {
-                    cell = document.createElement('div');
-                    cell.classList.add('cursor-help', 'bg-rose-100', 'text-rose-700', 'ring-1', 'ring-rose-200');
-                    cell.title = info.blocked_reason || 'Gesperrt';
+                    cell = document.createElement('button');
+                    cell.type = 'button';
+                    cell.classList.add('cursor-pointer', 'bg-rose-100', 'text-rose-700', 'ring-1', 'ring-rose-200', 'hover:bg-rose-200');
+                    cell.addEventListener('click', () => selectDate(dateKey));
                 } else if (info.clickable) {
                     cell = document.createElement('button');
                     cell.type = 'button';
@@ -210,7 +211,6 @@
                         cell.classList.add('bg-indigo-600', 'text-white', 'hover:bg-indigo-700');
                     } else if (info.pending_count > 0) {
                         cell.classList.add('bg-amber-100', 'text-amber-800', 'ring-1', 'ring-amber-200', 'hover:bg-amber-200');
-                        cell.title = 'Enthält ausstehende Terminanfragen';
                     } else {
                         cell.classList.add('bg-slate-100', 'text-slate-600', 'ring-1', 'ring-slate-200', 'hover:bg-slate-200');
                     }
@@ -219,13 +219,16 @@
                     cell.classList.add('cursor-not-allowed', 'bg-white', 'text-slate-300', 'ring-1', 'ring-slate-100');
                 }
 
-                cell.textContent = day;
                 cell.dataset.date = dateKey;
-                cell.classList.add('relative', 'aspect-square', 'rounded-lg', 'text-sm', 'font-medium', 'transition');
+                cell.classList.add('relative', 'aspect-square', 'rounded-lg', 'text-sm', 'font-medium', 'transition', 'flex', 'items-start', 'justify-start', 'p-2', 'text-left');
+
+                const dayLabel = document.createElement('span');
+                dayLabel.textContent = day;
+                cell.appendChild(dayLabel);
 
                 if (info.available && info.pending_count > 0) {
                     const dot = document.createElement('span');
-                    dot.className = 'absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-amber-400';
+                    dot.className = 'absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-amber-300 ring-1 ring-amber-200';
                     dot.title = `${info.pending_count} ausstehende Anfrage(n)`;
                     cell.appendChild(dot);
                 }
@@ -256,7 +259,7 @@
                 monthData = data.days || {};
                 renderCalendar();
 
-                if (selectedDate && monthData[selectedDate]?.clickable) {
+                if (selectedDate && (monthData[selectedDate]?.clickable || monthData[selectedDate]?.blocked)) {
                     await loadSlots(selectedDate);
                 } else {
                     slotsSection.classList.add('hidden');
@@ -282,7 +285,7 @@
                 slotsGrid.innerHTML = '';
 
                 if (data.blocked) {
-                    slotsGrid.innerHTML = `<p class="col-span-full rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">${data.blocked_reason || 'Dieser Tag ist gesperrt.'}</p>`;
+                    slotsGrid.innerHTML = `<p class="col-span-full rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800"><span class="font-medium">Gesperrt:</span> ${data.blocked_reason || 'Dieser Tag ist gesperrt.'}</p>`;
                     startsAtInput.value = '';
                     selectedSlotValue = null;
                     return;
