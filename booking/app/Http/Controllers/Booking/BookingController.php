@@ -68,17 +68,15 @@ class BookingController extends \App\Http\Controllers\Controller
 
         $service = Service::query()->active()->findOrFail($validated['service_id']);
         $date = Carbon::parse($validated['date']);
-
-        if ($this->bookingService->isDateBlocked($date)) {
-            return response()->json(['slots' => []]);
-        }
-
-        $slots = $this->bookingService->getAvailableSlots($service, $date);
+        $overview = $this->bookingService->getDaySlotsOverview($service, $date);
 
         return response()->json([
-            'slots' => $slots->map(fn (Carbon $slot) => [
-                'value' => $slot->format('Y-m-d H:i:s'),
-                'label' => $slot->format('H:i').' Uhr',
+            'blocked' => $overview['blocked'],
+            'blocked_reason' => $overview['blocked_reason'],
+            'slots' => collect($overview['slots'])->map(fn (array $slot) => [
+                'value' => $slot['status'] === 'available' ? $slot['value'] : null,
+                'label' => $slot['label'],
+                'status' => $slot['status'],
             ])->values(),
         ]);
     }

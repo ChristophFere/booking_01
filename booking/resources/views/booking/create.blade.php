@@ -53,6 +53,8 @@
 
                         <div class="mt-3 flex flex-wrap gap-3 text-xs text-slate-500">
                             <span class="inline-flex items-center gap-1"><span class="h-3 w-3 rounded bg-indigo-600"></span> Verfügbar</span>
+                            <span class="inline-flex items-center gap-1"><span class="h-3 w-3 rounded bg-amber-400"></span> Anfrage ausstehend</span>
+                            <span class="inline-flex items-center gap-1"><span class="h-3 w-3 rounded bg-rose-200 ring-1 ring-rose-300"></span> Gesperrt</span>
                             <span class="inline-flex items-center gap-1"><span class="h-3 w-3 rounded bg-white ring-1 ring-slate-200"></span> Nicht verfügbar</span>
                         </div>
                     </div>
@@ -185,34 +187,58 @@
             for (let day = 1; day <= lastDay.getDate(); day++) {
                 const date = new Date(year, month, day);
                 const dateKey = formatDateKey(date);
-                const info = monthData[dateKey] || { available: false, slots_count: 0 };
+                const info = monthData[dateKey] || {
+                    blocked: false,
+                    available: false,
+                    slots_count: 0,
+                    pending_count: 0,
+                    clickable: false,
+                };
 
-                const button = document.createElement('button');
-                button.type = 'button';
-                button.textContent = day;
-                button.dataset.date = dateKey;
-                button.className = 'aspect-square rounded-lg text-sm font-medium transition';
+                let cell;
 
-                if (info.available) {
-                    button.classList.add('bg-indigo-600', 'text-white', 'hover:bg-indigo-700');
+                if (info.blocked) {
+                    cell = document.createElement('div');
+                    cell.classList.add('cursor-help', 'bg-rose-100', 'text-rose-700', 'ring-1', 'ring-rose-200');
+                    cell.title = info.blocked_reason || 'Gesperrt';
+                } else if (info.clickable) {
+                    cell = document.createElement('button');
+                    cell.type = 'button';
+                    cell.addEventListener('click', () => selectDate(dateKey));
+
+                    if (info.available) {
+                        cell.classList.add('bg-indigo-600', 'text-white', 'hover:bg-indigo-700');
+                    } else if (info.pending_count > 0) {
+                        cell.classList.add('bg-amber-100', 'text-amber-800', 'ring-1', 'ring-amber-200', 'hover:bg-amber-200');
+                        cell.title = 'Enthält ausstehende Terminanfragen';
+                    } else {
+                        cell.classList.add('bg-slate-100', 'text-slate-600', 'ring-1', 'ring-slate-200', 'hover:bg-slate-200');
+                    }
                 } else {
-                    button.classList.add('cursor-not-allowed', 'bg-white', 'text-slate-300', 'ring-1', 'ring-slate-100');
-                    button.disabled = true;
+                    cell = document.createElement('div');
+                    cell.classList.add('cursor-not-allowed', 'bg-white', 'text-slate-300', 'ring-1', 'ring-slate-100');
+                }
+
+                cell.textContent = day;
+                cell.dataset.date = dateKey;
+                cell.classList.add('relative', 'aspect-square', 'rounded-lg', 'text-sm', 'font-medium', 'transition');
+
+                if (info.available && info.pending_count > 0) {
+                    const dot = document.createElement('span');
+                    dot.className = 'absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-amber-400';
+                    dot.title = `${info.pending_count} ausstehende Anfrage(n)`;
+                    cell.appendChild(dot);
                 }
 
                 if (dateKey === todayKey && info.available) {
-                    button.classList.add('ring-2', 'ring-indigo-300', 'ring-offset-1');
+                    cell.classList.add('ring-2', 'ring-indigo-300', 'ring-offset-1');
                 }
 
                 if (dateKey === selectedDate) {
-                    button.classList.add('ring-2', 'ring-slate-900', 'ring-offset-2');
+                    cell.classList.add('ring-2', 'ring-slate-900', 'ring-offset-2');
                 }
 
-                if (info.available) {
-                    button.addEventListener('click', () => selectDate(dateKey));
-                }
-
-                calendarGrid.appendChild(button);
+                calendarGrid.appendChild(cell);
             }
         };
 
@@ -230,7 +256,7 @@
                 monthData = data.days || {};
                 renderCalendar();
 
-                if (selectedDate && monthData[selectedDate]?.available) {
+                if (selectedDate && monthData[selectedDate]?.clickable) {
                     await loadSlots(selectedDate);
                 } else {
                     slotsSection.classList.add('hidden');
@@ -255,27 +281,61 @@
 
                 slotsGrid.innerHTML = '';
 
-                if (!data.slots.length) {
-                    slotsGrid.innerHTML = '<p class="col-span-full text-sm text-slate-500">Keine Termine verfügbar.</p>';
+                if (data.blocked) {
+                    slotsGrid.innerHTML = `<p class="col-span-full rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">${data.blocked_reason || 'Dieser Tag ist gesperrt.'}</p>`;
                     startsAtInput.value = '';
                     selectedSlotValue = null;
                     return;
                 }
 
-                data.slots.forEach(slot => {
-                    const btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.textContent = slot.label;
-                    btn.dataset.value = slot.value;
-                    btn.className = 'rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-indigo-300 hover:bg-indigo-50';
+                if (!data.slots.length) {
+                    slotsGrid.innerHTML = '<p class="col-span-full text-sm text-slate-500">Keine Termine an diesem Tag.</p>';
+                    startsAtInput.value = '';
+                    selectedSlotValue = null;
+                    return;
+                }
 
-                    if (selectedSlotValue === slot.value) {
-                        btn.classList.add('border-indigo-600', 'bg-indigo-50', 'text-indigo-700', 'ring-2', 'ring-indigo-500');
+                const hasAvailable = data.slots.some(slot => slot.status === 'available');
+
+                data.slots.forEach(slot => {
+                    if (slot.status === 'available') {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.textContent = slot.label;
+                        btn.dataset.value = slot.value;
+                        btn.className = 'rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-indigo-300 hover:bg-indigo-50';
+
+                        if (selectedSlotValue === slot.value) {
+                            btn.classList.add('border-indigo-600', 'bg-indigo-50', 'text-indigo-700', 'ring-2', 'ring-indigo-500');
+                        }
+
+                        btn.addEventListener('click', () => selectSlot(slot.value, btn));
+                        slotsGrid.appendChild(btn);
+                        return;
                     }
 
-                    btn.addEventListener('click', () => selectSlot(slot.value, btn));
-                    slotsGrid.appendChild(btn);
+                    const item = document.createElement('div');
+                    item.className = 'rounded-lg border px-3 py-2 text-sm text-center';
+
+                    if (slot.status === 'pending') {
+                        item.classList.add('border-amber-200', 'bg-amber-50', 'text-amber-800');
+                        item.textContent = slot.label.replace(' Uhr', '') + ' – Anfrage ausstehend';
+                        item.title = 'Es liegt bereits eine ausstehende Terminanfrage vor.';
+                    } else {
+                        item.classList.add('border-slate-200', 'bg-slate-50', 'text-slate-500');
+                        item.textContent = slot.label.replace(' Uhr', '') + ' – Belegt';
+                        item.title = 'Dieser Termin ist bereits vergeben.';
+                    }
+
+                    slotsGrid.appendChild(item);
                 });
+
+                if (!hasAvailable) {
+                    const hint = document.createElement('p');
+                    hint.className = 'col-span-full mt-1 text-xs text-slate-500';
+                    hint.textContent = 'An diesem Tag sind keine freien Termine mehr verfügbar.';
+                    slotsGrid.appendChild(hint);
+                }
             } catch {
                 slotsGrid.innerHTML = '<p class="col-span-full text-sm text-red-600">Zeiten konnten nicht geladen werden.</p>';
             }
