@@ -50,47 +50,96 @@
                             <dd class="mt-1 text-sm text-slate-700">{{ $appointment->notes }}</dd>
                         </div>
                     @endif
+                    @if ($appointment->admin_notes)
+                        <div class="sm:col-span-2">
+                            <dt class="text-xs font-medium uppercase tracking-wider text-slate-500">Interne Notiz</dt>
+                            <dd class="mt-1 whitespace-pre-wrap text-sm text-slate-700">{{ $appointment->admin_notes }}</dd>
+                        </div>
+                    @endif
                 </dl>
             </div>
         </div>
 
         <div class="space-y-6">
-            <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h2 class="font-semibold">Bearbeiten</h2>
-                <form method="POST" action="{{ route('admin.appointments.update', $appointment) }}" class="mt-4 space-y-4">
-                    @csrf
-                    @method('PUT')
+            @if ($appointment->isPending())
+                <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <h2 class="font-semibold">Anfrage bearbeiten</h2>
+                    <p class="mt-2 text-sm text-slate-600">Bestätigen Sie die Terminanfrage oder lehnen Sie sie mit einer internen Begründung ab.</p>
 
-                    <div>
-                        <label for="status" class="mb-1.5 block text-sm font-medium text-slate-700">Status</label>
-                        <select
-                            name="status"
-                            id="status"
-                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                        >
-                            @foreach ($statuses as $status)
-                                <option value="{{ $status->value }}" @selected(old('status', $appointment->status->value) === $status->value)>
-                                    {{ $status->label() }}
-                                </option>
-                            @endforeach
-                        </select>
+                    <form method="POST" action="{{ route('admin.appointments.confirm', $appointment) }}" class="mt-4">
+                        @csrf
+                        <button type="submit" class="w-full rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700">
+                            Termin bestätigen
+                        </button>
+                    </form>
+
+                    <form method="POST" action="{{ route('admin.appointments.cancel', $appointment) }}" class="mt-4 space-y-3 border-t border-slate-100 pt-4">
+                        @csrf
+                        <div>
+                            <label for="cancel_admin_notes_pending" class="mb-1.5 block text-sm font-medium text-slate-700">Interne Notiz zur Ablehnung <span class="text-red-600">*</span></label>
+                            <textarea
+                                name="admin_notes"
+                                id="cancel_admin_notes_pending"
+                                rows="4"
+                                required
+                                placeholder="Begründung für die Ablehnung …"
+                                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                            >{{ old('admin_notes') }}</textarea>
+                            @error('admin_notes')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <button type="submit" class="w-full rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700">
+                            Termin ablehnen
+                        </button>
+                    </form>
+                </div>
+            @elseif ($appointment->isConfirmed())
+                <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <h2 class="font-semibold">Termin stornieren</h2>
+                    <p class="mt-2 text-sm text-slate-600">Ein bestätigter Termin kann storniert, aber nicht wieder auf „Ausstehend“ gesetzt werden.</p>
+
+                    <form method="POST" action="{{ route('admin.appointments.cancel', $appointment) }}" class="mt-4 space-y-3">
+                        @csrf
+                        <div>
+                            <label for="cancel_admin_notes_confirmed" class="mb-1.5 block text-sm font-medium text-slate-700">Interne Notiz zur Stornierung <span class="text-red-600">*</span></label>
+                            <textarea
+                                name="admin_notes"
+                                id="cancel_admin_notes_confirmed"
+                                rows="4"
+                                required
+                                placeholder="Begründung für die Stornierung …"
+                                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                            >{{ old('admin_notes', $appointment->admin_notes) }}</textarea>
+                            @error('admin_notes')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <button type="submit" class="w-full rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700" onclick="return confirm('Termin wirklich stornieren?')">
+                            Termin stornieren
+                        </button>
+                    </form>
+                </div>
+
+                @unless ($appointment->admin_notes)
+                    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                        <h2 class="font-semibold">Interne Notiz</h2>
+                        <form method="POST" action="{{ route('admin.appointments.update', $appointment) }}" class="mt-4 space-y-4">
+                            @csrf
+                            @method('PUT')
+                            <textarea
+                                name="admin_notes"
+                                rows="4"
+                                placeholder="Optionale interne Notiz …"
+                                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                            >{{ old('admin_notes') }}</textarea>
+                            <button type="submit" class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                                Notiz speichern
+                            </button>
+                        </form>
                     </div>
-
-                    <div>
-                        <label for="admin_notes" class="mb-1.5 block text-sm font-medium text-slate-700">Interne Notiz</label>
-                        <textarea
-                            name="admin_notes"
-                            id="admin_notes"
-                            rows="4"
-                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                        >{{ old('admin_notes', $appointment->admin_notes) }}</textarea>
-                    </div>
-
-                    <button type="submit" class="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700">
-                        Speichern
-                    </button>
-                </form>
-            </div>
+                @endunless
+            @endif
 
             <div class="rounded-2xl border border-red-200 bg-red-50 p-6">
                 <h2 class="font-semibold text-red-800">Termin löschen</h2>
