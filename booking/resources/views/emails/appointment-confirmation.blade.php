@@ -5,23 +5,19 @@
     <title>Terminbestätigung</title>
 </head>
 <body>
-    <h1>Ihre Terminbuchung</h1>
-
     <p>Hallo {{ $appointment->customer_name }},</p>
 
-    <p>vielen Dank für Ihre Buchung. Hier sind Ihre Termindetails:</p>
+    <p>wir freuen uns, Ihnen mitteilen zu können, dass Ihr Termin bestätigt wurde.</p>
 
+    <p><strong>Ihre Termindetails:</strong></p>
     <ul>
         <li><strong>Leistung:</strong> {{ $appointment->service->name }}</li>
         <li><strong>Datum:</strong> {{ $appointment->starts_at->format('d.m.Y') }}</li>
         <li><strong>Uhrzeit:</strong> {{ $appointment->starts_at->format('H:i') }} – {{ $appointment->ends_at->format('H:i') }} Uhr</li>
-        <li><strong>Status:</strong> {{ $appointment->status->label() }}</li>
     </ul>
 
-    @if ($appointment->notes)
-        <p><strong>Ihre Notiz:</strong> {{ $appointment->notes }}</p>
-    @endif
+    <p>Bitte erscheinen Sie pünktlich zu Ihrem Termin. Bei Fragen können Sie uns gerne kontaktieren.</p>
 
-    <p>Bei Fragen antworten Sie einfach auf diese E-Mail.</p>
+    <p>Mit freundlichen Grüßen<br>Ihr Team</p>
 </body>
 </html>

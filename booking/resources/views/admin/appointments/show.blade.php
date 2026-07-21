@@ -23,6 +23,26 @@
                         <dd class="mt-1">@include('admin.partials.status-badge', ['status' => $appointment->status])</dd>
                     </div>
                     <div>
+                        <dt class="text-xs font-medium uppercase tracking-wider text-slate-500">Bestätigungsmail</dt>
+                        <dd class="mt-1 text-sm">
+                            @if ($appointment->confirmation_mail_sent_at)
+                                Versendet am {{ $appointment->confirmation_mail_sent_at->format('d.m.Y H:i') }} Uhr
+                            @else
+                                <span class="text-slate-400">Noch nicht versendet</span>
+                            @endif
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium uppercase tracking-wider text-slate-500">Absagemail</dt>
+                        <dd class="mt-1 text-sm">
+                            @if ($appointment->cancellation_mail_sent_at)
+                                Versendet am {{ $appointment->cancellation_mail_sent_at->format('d.m.Y H:i') }} Uhr
+                            @else
+                                <span class="text-slate-400">Noch nicht versendet</span>
+                            @endif
+                        </dd>
+                    </div>
+                    <div>
                         <dt class="text-xs font-medium uppercase tracking-wider text-slate-500">Datum</dt>
                         <dd class="mt-1 text-sm">{{ $appointment->starts_at->format('d.m.Y') }}</dd>
                     </div>

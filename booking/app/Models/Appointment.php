@@ -23,6 +23,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'confirmation_token',
     'confirmed_at',
     'cancelled_at',
+    'confirmation_mail_sent_at',
+    'cancellation_mail_sent_at',
 ])]
 class Appointment extends Model
 {
@@ -40,6 +42,8 @@ class Appointment extends Model
             'status' => AppointmentStatus::class,
             'confirmed_at' => 'datetime',
             'cancelled_at' => 'datetime',
+            'confirmation_mail_sent_at' => 'datetime',
+            'cancellation_mail_sent_at' => 'datetime',
         ];
     }
 
@@ -66,5 +70,15 @@ class Appointment extends Model
     public function isCancelled(): bool
     {
         return $this->status === AppointmentStatus::Cancelled;
+    }
+
+    public function hasConfirmationMailBeenSent(): bool
+    {
+        return $this->confirmation_mail_sent_at !== null;
+    }
+
+    public function hasCancellationMailBeenSent(): bool
+    {
+        return $this->cancellation_mail_sent_at !== null;
     }
 }
