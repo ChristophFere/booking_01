@@ -2,7 +2,7 @@
 
 @section('title', 'Termine')
 @section('heading', 'Termine')
-@section('subheading', 'Alle Buchungen verwalten und bearbeiten')
+@section('subheading', 'Terminanfragen bestätigen, ablehnen oder stornieren')
 
 @section('content')
     <div class="mb-6 flex flex-wrap gap-2">

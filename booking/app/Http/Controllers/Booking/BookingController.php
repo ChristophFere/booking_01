@@ -7,6 +7,7 @@ use App\Http\Requests\Booking\StoreBookingRequest;
 use App\Models\Appointment;
 use App\Models\Service;
 use App\Services\BookingService;
+use App\Services\BookingSettingsService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -18,6 +19,7 @@ class BookingController extends \App\Http\Controllers\Controller
 {
     public function __construct(
         private BookingService $bookingService,
+        private BookingSettingsService $bookingSettings,
     ) {}
 
     public function create(): View
@@ -68,6 +70,15 @@ class BookingController extends \App\Http\Controllers\Controller
 
         $service = Service::query()->active()->findOrFail($validated['service_id']);
         $date = Carbon::parse($validated['date']);
+
+        if (! $this->bookingSettings->isDateBookable($date)) {
+            return response()->json([
+                'blocked' => false,
+                'blocked_reason' => null,
+                'slots' => [],
+            ]);
+        }
+
         $overview = $this->bookingService->getDaySlotsOverview($service, $date);
 
         return response()->json([
@@ -97,6 +108,7 @@ class BookingController extends \App\Http\Controllers\Controller
                 $validated['year'],
                 $validated['month'],
             ),
+            'booking_window' => $this->bookingSettings->all(),
         ]);
     }
 }

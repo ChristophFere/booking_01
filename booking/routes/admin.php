@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\ServiceController;
+use App\Http\Controllers\Admin\BookingSettingsController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\AppointmentController;
 use App\Http\Controllers\Admin\AuthController;
@@ -35,8 +36,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('appointments', [AppointmentController::class, 'index'])->name('appointments.index');
         Route::get('appointments/{appointment}', [AppointmentController::class, 'show'])->name('appointments.show');
+        Route::post('appointments/{appointment}/confirm', [AppointmentController::class, 'confirm'])->name('appointments.confirm');
+        Route::post('appointments/{appointment}/cancel', [AppointmentController::class, 'cancel'])->name('appointments.cancel');
         Route::put('appointments/{appointment}', [AppointmentController::class, 'update'])->name('appointments.update');
         Route::delete('appointments/{appointment}', [AppointmentController::class, 'destroy'])->name('appointments.destroy');
+
+        Route::get('booking-settings', [BookingSettingsController::class, 'index'])->name('booking-settings.index');
+        Route::put('booking-settings', [BookingSettingsController::class, 'update'])->name('booking-settings.update');
 
         Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
         Route::put('settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password.update');

@@ -12,6 +12,9 @@ use Illuminate\Support\Collection;
 
 class BookingService
 {
+    public function __construct(
+        private BookingSettingsService $bookingSettings,
+    ) {}
     /**
      * Tagesübersicht aller Slots inkl. Status für die Kalenderansicht.
      *
@@ -23,6 +26,14 @@ class BookingService
      */
     public function getDaySlotsOverview(Service $service, Carbon $date): array
     {
+        if (! $this->bookingSettings->isDateBookable($date)) {
+            return [
+                'blocked' => false,
+                'blocked_reason' => null,
+                'slots' => [],
+            ];
+        }
+
         $blockedDate = BlockedDate::query()
             ->whereDate('date', $date->toDateString())
             ->first();
@@ -146,7 +157,7 @@ class BookingService
         for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
             $dateKey = $date->format('Y-m-d');
 
-            if ($date->lt(today())) {
+            if ($date->lt(today()) || ! $this->bookingSettings->isDateBookable($date)) {
                 $availability[$dateKey] = [
                     'blocked' => false,
                     'blocked_reason' => null,

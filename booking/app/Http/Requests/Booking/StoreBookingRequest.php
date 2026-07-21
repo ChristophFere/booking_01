@@ -4,6 +4,7 @@ namespace App\Http\Requests\Booking;
 
 use App\Models\Service;
 use App\Services\BookingService;
+use App\Services\BookingSettingsService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
@@ -45,6 +46,12 @@ class StoreBookingRequest extends FormRequest
             }
 
             $startsAt = Carbon::parse($this->input('starts_at'));
+
+            if (! app(BookingSettingsService::class)->isDateBookable($startsAt)) {
+                $validator->errors()->add('starts_at', 'Der gewählte Termin liegt außerhalb des Buchungszeitraums.');
+
+                return;
+            }
 
             if (! app(BookingService::class)->isSlotAvailable($service, $startsAt)) {
                 $validator->errors()->add('starts_at', 'Der gewählte Termin ist nicht verfügbar.');
