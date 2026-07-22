@@ -27,6 +27,17 @@
         </li>
     </ul>
 
+    <template id="drink-item-template">
+        <li class="drink-item rounded-2xl border border-emerald-200 bg-white shadow-sm" data-drink-item>
+            <button type="button" data-action="decrement" class="drink-item__btn drink-item__btn--minus" aria-label="Menge verringern">−</button>
+            <div class="drink-item__center">
+                <p class="drink-item__name"></p>
+                <span class="drink-item__qty"></span>
+            </div>
+            <button type="button" data-action="increment" class="drink-item__btn drink-item__btn--plus" aria-label="Menge erhöhen">+</button>
+        </li>
+    </template>
+
     <div class="mt-8 flex flex-col gap-3 sm:flex-row">
         <button
             type="button"
@@ -107,6 +118,7 @@
             const totalQuantityEl = document.getElementById('total-quantity');
             const drinkListEl = document.getElementById('drink-list');
             const drinkListEmptyEl = document.getElementById('drink-list-empty');
+            const drinkItemTemplate = document.getElementById('drink-item-template');
             const addForm = document.getElementById('add-form');
             const drinkNameInput = document.getElementById('drink-name');
             const fabAddDrink = document.getElementById('fab-add-drink');
@@ -168,37 +180,13 @@
                 drinkListEmptyEl.classList.add('hidden');
 
                 items.forEach((item) => {
-                    const li = document.createElement('li');
-                    li.dataset.drinkItem = 'true';
-                    li.className = 'flex items-center gap-3 rounded-2xl border border-emerald-200 bg-white px-3 py-3 shadow-sm sm:px-4 sm:py-3.5';
-                    li.innerHTML = `
-                        <button
-                            type="button"
-                            data-action="decrement"
-                            data-id="${item.id}"
-                            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-emerald-300 bg-emerald-50 text-2xl font-medium leading-none text-emerald-800 transition hover:bg-emerald-100 active:scale-95 touch-manipulation select-none"
-                            aria-label="Menge verringern"
-                        >−</button>
-                        <div class="flex min-w-0 flex-1 flex-col items-center justify-center text-center">
-                            <p class="w-full text-base font-semibold leading-snug text-slate-800">${escapeHtml(item.name)}</p>
-                            <span class="mt-1.5 inline-flex min-w-[2rem] items-center justify-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-lg font-bold tabular-nums text-emerald-800 ring-1 ring-emerald-200">${item.quantity}</span>
-                        </div>
-                        <button
-                            type="button"
-                            data-action="increment"
-                            data-id="${item.id}"
-                            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-2xl font-medium leading-none text-white shadow-sm transition hover:bg-emerald-700 active:scale-95 touch-manipulation select-none"
-                            aria-label="Menge erhöhen"
-                        >+</button>
-                    `;
+                    const li = drinkItemTemplate.content.firstElementChild.cloneNode(true);
+                    li.querySelector('[data-action="decrement"]').dataset.id = item.id;
+                    li.querySelector('[data-action="increment"]').dataset.id = item.id;
+                    li.querySelector('.drink-item__name').textContent = item.name;
+                    li.querySelector('.drink-item__qty').textContent = item.quantity;
                     drinkListEl.appendChild(li);
                 });
-            };
-
-            const escapeHtml = (value) => {
-                const div = document.createElement('div');
-                div.textContent = value;
-                return div.innerHTML;
             };
 
             const applyPayload = (payload) => {
