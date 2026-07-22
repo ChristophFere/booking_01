@@ -68,8 +68,10 @@ class AppointmentController extends AdminController
                 ->with('error', 'Nur ausstehende Termine können bestätigt werden.');
         }
 
+        $confirmed = false;
+
         try {
-            DB::transaction(function () use ($appointment): void {
+            DB::transaction(function () use ($appointment, &$confirmed): void {
                 $locked = Appointment::query()
                     ->lockForUpdate()
                     ->findOrFail($appointment->id);
@@ -84,17 +86,40 @@ class AppointmentController extends AdminController
                 ]);
                 $locked->save();
 
-                $this->appointmentMailService->sendConfirmationMail($locked);
+                $confirmed = true;
             });
         } catch (Throwable) {
             return redirect()
                 ->route('admin.appointments.show', $appointment)
-                ->with('error', 'Der Termin konnte nicht bestätigt werden. Die Bestätigungsmail wurde nicht versendet.');
+                ->with('error', 'Der Termin konnte nicht bestätigt werden.');
+        }
+
+        if (! $confirmed) {
+            return redirect()
+                ->route('admin.appointments.show', $appointment)
+                ->with('error', 'Nur ausstehende Termine können bestätigt werden.');
+        }
+
+        $appointment->refresh();
+
+        $mailSent = false;
+
+        try {
+            $this->appointmentMailService->sendConfirmationMail($appointment);
+            $mailSent = true;
+        } catch (Throwable) {
+            //
+        }
+
+        if ($mailSent) {
+            return redirect()
+                ->route('admin.appointments.show', $appointment)
+                ->with('success', 'Termin wurde bestätigt. Die Bestätigungsmail wurde versendet.');
         }
 
         return redirect()
             ->route('admin.appointments.show', $appointment)
-            ->with('success', 'Termin wurde bestätigt. Die Bestätigungsmail wurde versendet.');
+            ->with('warning', 'Termin wurde bestätigt. Die Bestätigungsmail konnte nicht versendet werden.');
     }
 
     public function cancel(CancelAppointmentRequest $request, Appointment $appointment): RedirectResponse
@@ -112,9 +137,10 @@ class AppointmentController extends AdminController
         }
 
         $wasConfirmed = $appointment->isConfirmed();
+        $cancelled = false;
 
         try {
-            DB::transaction(function () use ($request, $appointment, $wasConfirmed): void {
+            DB::transaction(function () use ($request, $appointment, &$cancelled): void {
                 $locked = Appointment::query()
                     ->lockForUpdate()
                     ->findOrFail($appointment->id);
@@ -130,27 +156,48 @@ class AppointmentController extends AdminController
                 ]);
                 $locked->save();
 
-                if (! $wasConfirmed) {
-                    $this->appointmentMailService->sendRejectionMail($locked);
-                }
+                $cancelled = true;
             });
         } catch (Throwable) {
             $errorMessage = $wasConfirmed
                 ? 'Der Termin konnte nicht storniert werden.'
-                : 'Der Termin konnte nicht abgelehnt werden. Die Absagemail wurde nicht versendet.';
+                : 'Der Termin konnte nicht abgelehnt werden.';
 
             return redirect()
                 ->route('admin.appointments.show', $appointment)
                 ->with('error', $errorMessage);
         }
 
-        $message = $wasConfirmed
+        if (! $cancelled) {
+            return redirect()
+                ->route('admin.appointments.show', $appointment)
+                ->with('error', 'Dieser Termin wurde bereits abgelehnt oder storniert.');
+        }
+
+        $appointment->refresh();
+
+        $mailSent = false;
+
+        try {
+            $this->appointmentMailService->sendRejectionMail($appointment);
+            $mailSent = true;
+        } catch (Throwable) {
+            //
+        }
+
+        $baseMessage = $wasConfirmed
             ? 'Termin wurde storniert.'
-            : 'Termin wurde abgelehnt. Die Absagemail wurde versendet.';
+            : 'Termin wurde abgelehnt.';
+
+        if ($mailSent) {
+            return redirect()
+                ->route('admin.appointments.show', $appointment)
+                ->with('success', $baseMessage.' Die Absagemail wurde versendet.');
+        }
 
         return redirect()
             ->route('admin.appointments.show', $appointment)
-            ->with('success', $message);
+            ->with('warning', $baseMessage.' Die Absagemail konnte nicht versendet werden.');
     }
 
     public function update(UpdateAppointmentRequest $request, Appointment $appointment): RedirectResponse
