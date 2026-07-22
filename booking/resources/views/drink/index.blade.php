@@ -13,7 +13,7 @@
         <p id="total-quantity" class="text-3xl font-bold text-emerald-700">0</p>
     </div>
 
-    <form id="add-form" class="mb-2">
+    <form id="add-form" class="mb-2 scroll-mt-6">
         <input
             type="text"
             id="drink-name"
@@ -27,16 +27,6 @@
     </form>
     <p id="add-error" class="mb-4 hidden text-sm text-red-600"></p>
 
-    <button
-        type="submit"
-        form="add-form"
-        id="add-button"
-        class="fixed bottom-6 right-6 z-40 flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-full bg-emerald-600 text-4xl font-light leading-none text-white shadow-lg ring-4 ring-white transition hover:bg-emerald-700 active:scale-95 touch-manipulation"
-        aria-label="Getränk hinzufügen"
-    >
-        +
-    </button>
-
     <div class="mb-4 flex items-center justify-between gap-2">
         <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500">Getränke</h2>
         <div class="flex rounded-lg border border-emerald-200 bg-white p-0.5 text-xs">
@@ -47,7 +37,7 @@
 
     <ul id="drink-list" class="space-y-3">
         <li id="drink-list-empty" class="rounded-2xl border border-dashed border-emerald-200 bg-white px-4 py-8 text-center text-sm text-slate-500">
-            Noch keine Getränke. Oben eingeben und unten rechts auf + tippen.
+            Noch keine Getränke. Unten rechts auf + tippen und Getränk eingeben.
         </li>
     </ul>
 
@@ -68,7 +58,7 @@
         </button>
     </div>
 
-    <p id="toast" class="pointer-events-none fixed bottom-24 left-1/2 z-50 hidden -translate-x-1/2 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-lg"></p>
+    <p id="toast" class="pointer-events-none fixed bottom-28 left-1/2 z-50 hidden max-w-[90vw] -translate-x-1/2 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-lg"></p>
 
     <script>
         (() => {
@@ -87,6 +77,7 @@
             const drinkListEmptyEl = document.getElementById('drink-list-empty');
             const addForm = document.getElementById('add-form');
             const drinkNameInput = document.getElementById('drink-name');
+            const fabAddDrink = document.getElementById('fab-add-drink');
             const addErrorEl = document.getElementById('add-error');
             const toastEl = document.getElementById('toast');
             const sortButtons = document.querySelectorAll('.sort-button');
@@ -128,24 +119,24 @@
                 items.forEach((item) => {
                     const li = document.createElement('li');
                     li.dataset.drinkItem = 'true';
-                    li.className = 'flex items-center gap-2 rounded-2xl border border-emerald-200 bg-white px-2 py-3 shadow-sm sm:gap-3 sm:px-3';
+                    li.className = 'flex min-h-[5.5rem] items-stretch overflow-hidden rounded-2xl border border-emerald-200 bg-white shadow-sm';
                     li.innerHTML = `
                         <button
                             type="button"
                             data-action="decrement"
                             data-id="${item.id}"
-                            class="flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center rounded-2xl border-2 border-emerald-200 bg-emerald-50 text-4xl font-bold leading-none text-emerald-800 transition hover:bg-emerald-100 active:scale-95 touch-manipulation"
+                            class="flex w-[5.25rem] shrink-0 items-center justify-center border-r border-emerald-200 bg-emerald-50 text-5xl font-normal leading-none text-emerald-800 transition hover:bg-emerald-100 active:bg-emerald-200 touch-manipulation select-none"
                             aria-label="Menge verringern"
                         >−</button>
-                        <div class="min-w-0 flex-1 px-1 text-center">
-                            <span class="block text-2xl font-bold tabular-nums text-emerald-800">${item.quantity}</span>
-                            <span class="mt-0.5 block text-base font-medium leading-snug text-slate-800">${escapeHtml(item.name)}</span>
+                        <div class="flex min-w-0 flex-1 flex-col items-center justify-center px-2 py-3 text-center">
+                            <span class="text-3xl font-bold tabular-nums leading-none text-emerald-800">${item.quantity}</span>
+                            <span class="mt-1.5 text-lg font-medium leading-snug text-slate-800">${escapeHtml(item.name)}</span>
                         </div>
                         <button
                             type="button"
                             data-action="increment"
                             data-id="${item.id}"
-                            class="flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-4xl font-bold leading-none text-white transition hover:bg-emerald-700 active:scale-95 touch-manipulation"
+                            class="flex w-[5.25rem] shrink-0 items-center justify-center bg-emerald-600 text-5xl font-normal leading-none text-white transition hover:bg-emerald-700 active:bg-emerald-800 touch-manipulation select-none"
                             aria-label="Menge erhöhen"
                         >+</button>
                     `;
@@ -180,6 +171,12 @@
                 const payload = await response.json();
                 applyPayload(payload);
             };
+
+            fabAddDrink.addEventListener('click', () => {
+                addErrorEl.classList.add('hidden');
+                addForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                drinkNameInput.focus({ preventScroll: true });
+            });
 
             addForm.addEventListener('submit', async (event) => {
                 event.preventDefault();
