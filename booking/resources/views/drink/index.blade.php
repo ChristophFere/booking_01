@@ -13,20 +13,6 @@
         <p id="total-quantity" class="text-3xl font-bold text-emerald-700">0</p>
     </div>
 
-    <form id="add-form" class="mb-2 scroll-mt-6">
-        <input
-            type="text"
-            id="drink-name"
-            name="name"
-            placeholder="Getränk eingeben …"
-            autocomplete="off"
-            maxlength="255"
-            enterkeyhint="done"
-            class="w-full rounded-xl border border-emerald-200 bg-white px-4 py-4 text-base shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-        >
-    </form>
-    <p id="add-error" class="mb-4 hidden text-sm text-red-600"></p>
-
     <div class="mb-4 flex items-center justify-between gap-2">
         <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500">Getränke</h2>
         <div class="flex rounded-lg border border-emerald-200 bg-white p-0.5 text-xs">
@@ -37,7 +23,7 @@
 
     <ul id="drink-list" class="space-y-3">
         <li id="drink-list-empty" class="rounded-2xl border border-dashed border-emerald-200 bg-white px-4 py-8 text-center text-sm text-slate-500">
-            Noch keine Getränke. Unten rechts auf + tippen und Getränk eingeben.
+            Noch keine Getränke. Unten rechts auf + tippen, um ein Getränk hinzuzufügen.
         </li>
     </ul>
 
@@ -58,10 +44,56 @@
         </button>
     </div>
 
-    <p id="toast" class="pointer-events-none fixed bottom-28 left-1/2 z-50 hidden max-w-[90vw] -translate-x-1/2 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-lg"></p>
+    <div
+        id="add-drink-dialog"
+        class="fixed inset-0 z-[60] hidden items-end justify-center p-4 sm:items-center"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="add-drink-dialog-title"
+    >
+        <div id="add-drink-backdrop" class="absolute inset-0 bg-slate-900/40"></div>
+        <div class="relative w-full max-w-md rounded-2xl border border-emerald-200 bg-white p-6 shadow-xl">
+            <h2 id="add-drink-dialog-title" class="text-lg font-semibold text-emerald-900">Getränk hinzufügen</h2>
+            <p class="mt-1 text-sm text-slate-500">Freitext eingeben, z. B. Cola, Wasser, Weizen</p>
 
+            <form id="add-form" class="mt-4">
+                <input
+                    type="text"
+                    id="drink-name"
+                    name="name"
+                    placeholder="Getränk eingeben …"
+                    autocomplete="off"
+                    maxlength="255"
+                    enterkeyhint="done"
+                    class="w-full rounded-xl border border-emerald-200 bg-white px-4 py-4 text-base focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                >
+                <p id="add-error" class="mt-2 hidden text-sm text-red-600"></p>
+                <div class="mt-4 flex gap-3">
+                    <button
+                        type="button"
+                        id="dialog-cancel-button"
+                        class="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                    >
+                        Abbrechen
+                    </button>
+                    <button
+                        type="submit"
+                        id="dialog-submit-button"
+                        class="flex-1 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700"
+                    >
+                        Hinzufügen
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <p id="toast" class="pointer-events-none fixed bottom-28 left-1/2 z-50 hidden max-w-[90vw] -translate-x-1/2 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-lg"></p>
+@endsection
+
+@push('scripts')
     <script>
-        (() => {
+        document.addEventListener('DOMContentLoaded', () => {
             const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
             const itemsUrl = @json(route('drink.items.index'));
             const storeUrl = @json(route('drink.items.store'));
@@ -78,6 +110,9 @@
             const addForm = document.getElementById('add-form');
             const drinkNameInput = document.getElementById('drink-name');
             const fabAddDrink = document.getElementById('fab-add-drink');
+            const addDialog = document.getElementById('add-drink-dialog');
+            const addDialogBackdrop = document.getElementById('add-drink-backdrop');
+            const dialogCancelButton = document.getElementById('dialog-cancel-button');
             const addErrorEl = document.getElementById('add-error');
             const toastEl = document.getElementById('toast');
             const sortButtons = document.querySelectorAll('.sort-button');
@@ -95,6 +130,22 @@
                 toastEl.classList.remove('hidden');
                 clearTimeout(showToast.timeout);
                 showToast.timeout = setTimeout(() => toastEl.classList.add('hidden'), 2500);
+            };
+
+            const openAddDialog = () => {
+                addErrorEl.classList.add('hidden');
+                addErrorEl.textContent = '';
+                addDialog.classList.remove('hidden');
+                addDialog.classList.add('flex');
+                drinkNameInput.focus();
+            };
+
+            const closeAddDialog = () => {
+                addDialog.classList.add('hidden');
+                addDialog.classList.remove('flex');
+                drinkNameInput.value = '';
+                addErrorEl.classList.add('hidden');
+                addErrorEl.textContent = '';
             };
 
             const updateSortButtons = () => {
@@ -157,30 +208,23 @@
 
             const loadItems = async () => {
                 const response = await fetch(`${itemsUrl}?sort=${currentSort}`, { headers: headers() });
-                const payload = await response.json();
-                applyPayload(payload);
+                if (!response.ok) {
+                    throw new Error('Laden fehlgeschlagen');
+                }
+                applyPayload(await response.json());
             };
 
             const mutate = async (url, method = 'POST') => {
                 const response = await fetch(url, { method, headers: headers() });
-
                 if (!response.ok) {
                     throw new Error('Aktion fehlgeschlagen');
                 }
-
-                const payload = await response.json();
-                applyPayload(payload);
+                applyPayload(await response.json());
             };
 
-            fabAddDrink.addEventListener('click', () => {
+            const submitDrink = async () => {
                 addErrorEl.classList.add('hidden');
-                addForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                drinkNameInput.focus({ preventScroll: true });
-            });
-
-            addForm.addEventListener('submit', async (event) => {
-                event.preventDefault();
-                addErrorEl.classList.add('hidden');
+                addErrorEl.textContent = '';
 
                 const name = drinkNameInput.value.trim();
                 if (!name) {
@@ -202,9 +246,23 @@
                     return;
                 }
 
-                drinkNameInput.value = '';
                 applyPayload(await response.json());
-                drinkNameInput.focus();
+                closeAddDialog();
+                showToast('Getränk hinzugefügt');
+            };
+
+            fabAddDrink.addEventListener('click', openAddDialog);
+            dialogCancelButton.addEventListener('click', closeAddDialog);
+            addDialogBackdrop.addEventListener('click', closeAddDialog);
+
+            addForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                try {
+                    await submitDrink();
+                } catch {
+                    addErrorEl.textContent = 'Getränk konnte nicht hinzugefügt werden.';
+                    addErrorEl.classList.remove('hidden');
+                }
             });
 
             drinkListEl.addEventListener('click', async (event) => {
@@ -228,7 +286,11 @@
                 button.addEventListener('click', async () => {
                     currentSort = button.dataset.sort;
                     updateSortButtons();
-                    await loadItems();
+                    try {
+                        await loadItems();
+                    } catch {
+                        showToast('Liste konnte nicht geladen werden');
+                    }
                 });
             });
 
@@ -264,6 +326,6 @@
 
             updateSortButtons();
             loadItems().catch(() => showToast('Liste konnte nicht geladen werden'));
-        })();
+        });
     </script>
-@endsection
+@endpush
