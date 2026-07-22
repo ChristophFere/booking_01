@@ -13,7 +13,7 @@
         <p id="total-quantity" class="text-3xl font-bold text-emerald-700">0</p>
     </div>
 
-    <form id="add-form" class="mb-6 flex gap-2">
+    <form id="add-form" class="mb-2">
         <input
             type="text"
             id="drink-name"
@@ -21,18 +21,21 @@
             placeholder="Getränk eingeben …"
             autocomplete="off"
             maxlength="255"
-            class="min-w-0 flex-1 rounded-xl border border-emerald-200 bg-white px-4 py-3 text-base shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+            enterkeyhint="done"
+            class="w-full rounded-xl border border-emerald-200 bg-white px-4 py-4 text-base shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
         >
-        <button
-            type="submit"
-            id="add-button"
-            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-2xl font-bold text-white shadow-sm transition hover:bg-emerald-700 active:scale-95"
-            aria-label="Getränk hinzufügen"
-        >
-            +
-        </button>
     </form>
-    <p id="add-error" class="-mt-4 mb-4 hidden text-sm text-red-600"></p>
+    <p id="add-error" class="mb-4 hidden text-sm text-red-600"></p>
+
+    <button
+        type="submit"
+        form="add-form"
+        id="add-button"
+        class="fixed bottom-6 right-6 z-40 flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-full bg-emerald-600 text-4xl font-light leading-none text-white shadow-lg ring-4 ring-white transition hover:bg-emerald-700 active:scale-95 touch-manipulation"
+        aria-label="Getränk hinzufügen"
+    >
+        +
+    </button>
 
     <div class="mb-4 flex items-center justify-between gap-2">
         <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500">Getränke</h2>
@@ -44,7 +47,7 @@
 
     <ul id="drink-list" class="space-y-3">
         <li id="drink-list-empty" class="rounded-2xl border border-dashed border-emerald-200 bg-white px-4 py-8 text-center text-sm text-slate-500">
-            Noch keine Getränke. Füge das erste Getränk hinzu.
+            Noch keine Getränke. Oben eingeben und unten rechts auf + tippen.
         </li>
     </ul>
 
@@ -65,7 +68,7 @@
         </button>
     </div>
 
-    <p id="toast" class="pointer-events-none fixed bottom-6 left-1/2 z-50 hidden -translate-x-1/2 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-lg"></p>
+    <p id="toast" class="pointer-events-none fixed bottom-24 left-1/2 z-50 hidden -translate-x-1/2 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-lg"></p>
 
     <script>
         (() => {
@@ -125,24 +128,24 @@
                 items.forEach((item) => {
                     const li = document.createElement('li');
                     li.dataset.drinkItem = 'true';
-                    li.className = 'flex items-center gap-3 rounded-2xl border border-emerald-200 bg-white px-3 py-3 shadow-sm';
+                    li.className = 'flex items-center gap-2 rounded-2xl border border-emerald-200 bg-white px-2 py-3 shadow-sm sm:gap-3 sm:px-3';
                     li.innerHTML = `
                         <button
                             type="button"
                             data-action="decrement"
                             data-id="${item.id}"
-                            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 text-2xl font-bold text-emerald-800 transition hover:bg-emerald-100 active:scale-95"
+                            class="flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center rounded-2xl border-2 border-emerald-200 bg-emerald-50 text-4xl font-bold leading-none text-emerald-800 transition hover:bg-emerald-100 active:scale-95 touch-manipulation"
                             aria-label="Menge verringern"
                         >−</button>
-                        <div class="min-w-0 flex-1 text-center">
-                            <span class="mr-2 text-lg font-bold text-emerald-800">${item.quantity}</span>
-                            <span class="text-base font-medium text-slate-800">${escapeHtml(item.name)}</span>
+                        <div class="min-w-0 flex-1 px-1 text-center">
+                            <span class="block text-2xl font-bold tabular-nums text-emerald-800">${item.quantity}</span>
+                            <span class="mt-0.5 block text-base font-medium leading-snug text-slate-800">${escapeHtml(item.name)}</span>
                         </div>
                         <button
                             type="button"
                             data-action="increment"
                             data-id="${item.id}"
-                            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-2xl font-bold text-white transition hover:bg-emerald-700 active:scale-95"
+                            class="flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-4xl font-bold leading-none text-white transition hover:bg-emerald-700 active:scale-95 touch-manipulation"
                             aria-label="Menge erhöhen"
                         >+</button>
                     `;
