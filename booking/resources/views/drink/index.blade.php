@@ -8,6 +8,25 @@
         <p class="mt-1 text-sm text-emerald-700">Gemeinsam Getränke für euer Event sammeln</p>
     </div>
 
+    <div class="mb-6 flex flex-col items-center text-center">
+        <p class="text-xs font-medium uppercase tracking-wider text-slate-500">Präsentiert von</p>
+        <a
+            href="https://musiq.one"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="mt-2 inline-block rounded-lg px-2 py-1 transition hover:opacity-90"
+        >
+            <img
+                src="{{ asset('images/musiqone-logo.png') }}"
+                alt="musiq one"
+                width="136"
+                height="106"
+                class="h-14 w-auto"
+                loading="lazy"
+            >
+        </a>
+    </div>
+
     <div class="mb-4 rounded-2xl border border-emerald-200 bg-white px-4 py-3 text-center shadow-sm">
         <p class="text-sm font-medium text-slate-500">Gesamte Getränke</p>
         <p id="total-quantity" class="text-3xl font-bold text-emerald-700">0</p>
