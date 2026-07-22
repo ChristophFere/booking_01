@@ -170,24 +170,24 @@
                 items.forEach((item) => {
                     const li = document.createElement('li');
                     li.dataset.drinkItem = 'true';
-                    li.className = 'grid grid-cols-[4.25rem_1fr_4.25rem] items-center gap-1 rounded-2xl border border-emerald-200 bg-white py-4 pl-2 pr-2 shadow-sm sm:grid-cols-[4.5rem_1fr_4.5rem] sm:gap-2 sm:px-3';
+                    li.className = 'flex items-center gap-3 rounded-2xl border border-emerald-200 bg-white px-3 py-3 shadow-sm sm:px-4 sm:py-3.5';
                     li.innerHTML = `
                         <button
                             type="button"
                             data-action="decrement"
                             data-id="${item.id}"
-                            class="flex aspect-square w-full max-w-[4.25rem] items-center justify-center self-center justify-self-center rounded-2xl border border-emerald-200 bg-gradient-to-b from-white to-emerald-50 text-3xl font-medium leading-none text-emerald-700 shadow-sm transition hover:border-emerald-300 hover:from-emerald-50 hover:to-emerald-100 active:scale-95 touch-manipulation select-none sm:max-w-[4.5rem] sm:text-4xl"
+                            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-emerald-300 bg-emerald-50 text-2xl font-medium leading-none text-emerald-800 transition hover:bg-emerald-100 active:scale-95 touch-manipulation select-none"
                             aria-label="Menge verringern"
                         >−</button>
-                        <div class="flex min-w-0 flex-col items-center justify-center px-2 text-center">
-                            <p class="w-full text-base font-semibold leading-snug text-slate-800 sm:text-lg">${escapeHtml(item.name)}</p>
-                            <span class="mt-2 inline-flex min-h-[2.25rem] min-w-[2.75rem] items-center justify-center rounded-full bg-emerald-100 px-3 text-xl font-bold tabular-nums text-emerald-800 ring-1 ring-emerald-200">${item.quantity}</span>
+                        <div class="flex min-w-0 flex-1 flex-col items-center justify-center text-center">
+                            <p class="w-full text-base font-semibold leading-snug text-slate-800">${escapeHtml(item.name)}</p>
+                            <span class="mt-1.5 inline-flex min-w-[2rem] items-center justify-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-lg font-bold tabular-nums text-emerald-800 ring-1 ring-emerald-200">${item.quantity}</span>
                         </div>
                         <button
                             type="button"
                             data-action="increment"
                             data-id="${item.id}"
-                            class="flex aspect-square w-full max-w-[4.25rem] items-center justify-center self-center justify-self-center rounded-2xl bg-emerald-600 text-3xl font-medium leading-none text-white shadow-md ring-2 ring-emerald-600/20 transition hover:bg-emerald-700 active:scale-95 touch-manipulation select-none sm:max-w-[4.5rem] sm:text-4xl"
+                            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-2xl font-medium leading-none text-white shadow-sm transition hover:bg-emerald-700 active:scale-95 touch-manipulation select-none"
                             aria-label="Menge erhöhen"
                         >+</button>
                     `;
