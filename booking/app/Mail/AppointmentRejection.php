@@ -19,8 +19,12 @@ class AppointmentRejection extends Mailable
 
     public function envelope(): Envelope
     {
+        $subject = $this->appointment->confirmed_at
+            ? 'Terminstornierung'
+            : 'Ihre Terminanfrage';
+
         return new Envelope(
-            subject: 'Ihre Terminanfrage',
+            subject: $subject,
         );
     }
 
