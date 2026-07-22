@@ -27,6 +27,17 @@
         </li>
     </ul>
 
+    <template id="drink-item-template">
+        <li class="drink-item rounded-2xl border border-emerald-200 bg-white shadow-sm" data-drink-item>
+            <button type="button" data-action="decrement" class="drink-item__btn drink-item__btn--minus" aria-label="Menge verringern">−</button>
+            <div class="drink-item__center">
+                <p class="drink-item__name"></p>
+                <span class="drink-item__qty"></span>
+            </div>
+            <button type="button" data-action="increment" class="drink-item__btn drink-item__btn--plus" aria-label="Menge erhöhen">+</button>
+        </li>
+    </template>
+
     <div class="mt-8 flex flex-col gap-3 sm:flex-row">
         <button
             type="button"
@@ -107,6 +118,7 @@
             const totalQuantityEl = document.getElementById('total-quantity');
             const drinkListEl = document.getElementById('drink-list');
             const drinkListEmptyEl = document.getElementById('drink-list-empty');
+            const drinkItemTemplate = document.getElementById('drink-item-template');
             const addForm = document.getElementById('add-form');
             const drinkNameInput = document.getElementById('drink-name');
             const fabAddDrink = document.getElementById('fab-add-drink');
@@ -168,37 +180,13 @@
                 drinkListEmptyEl.classList.add('hidden');
 
                 items.forEach((item) => {
-                    const li = document.createElement('li');
-                    li.dataset.drinkItem = 'true';
-                    li.className = 'grid grid-cols-[4.25rem_1fr_4.25rem] items-center gap-1 rounded-2xl border border-emerald-200 bg-white py-4 pl-2 pr-2 shadow-sm sm:grid-cols-[4.5rem_1fr_4.5rem] sm:gap-2 sm:px-3';
-                    li.innerHTML = `
-                        <button
-                            type="button"
-                            data-action="decrement"
-                            data-id="${item.id}"
-                            class="flex aspect-square w-full max-w-[4.25rem] items-center justify-center self-center justify-self-center rounded-2xl border border-emerald-200 bg-gradient-to-b from-white to-emerald-50 text-3xl font-medium leading-none text-emerald-700 shadow-sm transition hover:border-emerald-300 hover:from-emerald-50 hover:to-emerald-100 active:scale-95 touch-manipulation select-none sm:max-w-[4.5rem] sm:text-4xl"
-                            aria-label="Menge verringern"
-                        >−</button>
-                        <div class="flex min-w-0 flex-col items-center justify-center px-2 text-center">
-                            <p class="w-full text-base font-semibold leading-snug text-slate-800 sm:text-lg">${escapeHtml(item.name)}</p>
-                            <span class="mt-2 inline-flex min-h-[2.25rem] min-w-[2.75rem] items-center justify-center rounded-full bg-emerald-100 px-3 text-xl font-bold tabular-nums text-emerald-800 ring-1 ring-emerald-200">${item.quantity}</span>
-                        </div>
-                        <button
-                            type="button"
-                            data-action="increment"
-                            data-id="${item.id}"
-                            class="flex aspect-square w-full max-w-[4.25rem] items-center justify-center self-center justify-self-center rounded-2xl bg-emerald-600 text-3xl font-medium leading-none text-white shadow-md ring-2 ring-emerald-600/20 transition hover:bg-emerald-700 active:scale-95 touch-manipulation select-none sm:max-w-[4.5rem] sm:text-4xl"
-                            aria-label="Menge erhöhen"
-                        >+</button>
-                    `;
+                    const li = drinkItemTemplate.content.firstElementChild.cloneNode(true);
+                    li.querySelector('[data-action="decrement"]').dataset.id = item.id;
+                    li.querySelector('[data-action="increment"]').dataset.id = item.id;
+                    li.querySelector('.drink-item__name').textContent = item.name;
+                    li.querySelector('.drink-item__qty').textContent = item.quantity;
                     drinkListEl.appendChild(li);
                 });
-            };
-
-            const escapeHtml = (value) => {
-                const div = document.createElement('div');
-                div.textContent = value;
-                return div.innerHTML;
             };
 
             const applyPayload = (payload) => {
