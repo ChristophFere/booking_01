@@ -7,17 +7,25 @@
     @fonts
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('head')
+    <style>
+        /* Header logo: Tailwind utilities may be absent from deployed build; preflight sets img height:auto. */
+        .booking-header-logo {
+            display: block;
+            height: 2.25rem;
+            width: auto;
+            max-height: calc(4rem - 0.5rem);
+            object-fit: contain;
+        }
+    </style>
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900 antialiased">
     <header class="border-b border-slate-200 bg-white">
         <div class="mx-auto flex h-16 max-w-3xl items-center px-4">
-            <a href="{{ route('booking.create') }}" class="inline-flex items-center rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+            <a href="{{ route('booking.create') }}" class="inline-flex max-h-full items-center rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
                 <img
                     src="{{ asset('images/tsv-martfeld-logo.png') }}"
                     alt="TSV Martfeld"
-                    class="h-6 w-auto max-h-full object-contain"
-                    width="60"
-                    height="60"
+                    class="booking-header-logo"
                     loading="eager"
                 >
             </a>
