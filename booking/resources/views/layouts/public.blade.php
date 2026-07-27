@@ -15,9 +15,9 @@
                 <img
                     src="{{ asset('images/tsv-martfeld-logo.png') }}"
                     alt="TSV Martfeld"
-                    class="h-12 w-auto"
-                    width="120"
-                    height="120"
+                    class="h-6 w-auto max-h-full object-contain"
+                    width="60"
+                    height="60"
                     loading="eager"
                 >
             </a>
