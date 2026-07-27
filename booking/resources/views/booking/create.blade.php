@@ -74,7 +74,7 @@
                 </div>
 
                 <div>
-                    <label for="customer_name" class="mb-1.5 block text-sm font-medium text-slate-700">Name</label>
+                    <label for="customer_name" class="mb-1.5 block text-sm font-medium text-slate-700">Name (Vereinsname und Kontaktperson angeben)</label>
                     <input
                         type="text"
                         name="customer_name"
