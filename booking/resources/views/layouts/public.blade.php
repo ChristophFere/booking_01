@@ -10,11 +10,17 @@
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900 antialiased">
     <header class="border-b border-slate-200 bg-white">
-        <div class="mx-auto flex h-16 max-w-3xl items-center justify-between px-4">
-            <a href="{{ route('booking.create') }}" class="text-lg font-semibold text-indigo-600">
-                {{ config('app.name', 'Terminbuchung') }}
+        <div class="mx-auto flex h-16 max-w-3xl items-center px-4">
+            <a href="{{ route('booking.create') }}" class="inline-flex items-center rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+                <img
+                    src="{{ asset('images/tsv-martfeld-logo.png') }}"
+                    alt="TSV Martfeld"
+                    class="h-12 w-auto"
+                    width="120"
+                    height="120"
+                    loading="eager"
+                >
             </a>
-            <a href="{{ url('/') }}" class="text-sm text-slate-500 hover:text-slate-700">Startseite</a>
         </div>
     </header>
 
