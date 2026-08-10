@@ -347,6 +347,7 @@
         const selectDate = (dateKey) => {
             selectedSlotValue = null;
             startsAtInput.value = '';
+            slotError.classList.add('hidden');
             loadSlots(dateKey);
         };
 
@@ -396,8 +397,12 @@
         bookingForm.addEventListener('submit', (e) => {
             if (!startsAtInput.value) {
                 e.preventDefault();
+                slotError.textContent = selectedDate
+                    ? 'Bitte wählen Sie eine Uhrzeit.'
+                    : 'Bitte wählen Sie einen Termin im Kalender.';
                 slotError.classList.remove('hidden');
-                calendarSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const scrollTarget = selectedDate ? slotsSection : calendarSection;
+                scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         });
 
