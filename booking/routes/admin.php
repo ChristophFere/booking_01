@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\BookingSettingsController;
+use App\Http\Controllers\Admin\EmailTemplateController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\AppointmentController;
 use App\Http\Controllers\Admin\AuthController;
@@ -43,6 +44,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('booking-settings', [BookingSettingsController::class, 'index'])->name('booking-settings.index');
         Route::put('booking-settings', [BookingSettingsController::class, 'update'])->name('booking-settings.update');
+
+        Route::get('email-templates', [EmailTemplateController::class, 'index'])->name('email-templates.index');
+        Route::put('email-templates', [EmailTemplateController::class, 'update'])->name('email-templates.update');
 
         Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
         Route::put('settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password.update');

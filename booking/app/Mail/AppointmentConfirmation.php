@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\Appointment;
+use App\Services\EmailTemplateSettingsService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -19,15 +20,23 @@ class AppointmentConfirmation extends Mailable
 
     public function envelope(): Envelope
     {
+        $rendered = app(EmailTemplateSettingsService::class)->renderConfirmation($this->appointment);
+
         return new Envelope(
-            subject: 'Terminbestätigung',
+            subject: $rendered['subject'],
         );
     }
 
     public function content(): Content
     {
+        $rendered = app(EmailTemplateSettingsService::class)->renderConfirmation($this->appointment);
+
         return new Content(
-            view: 'emails.appointment-confirmation',
+            view: 'emails.dynamic',
+            with: [
+                'title' => $rendered['subject'],
+                'body' => $rendered['body'],
+            ],
         );
     }
 }
