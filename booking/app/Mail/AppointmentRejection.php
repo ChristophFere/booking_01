@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\Appointment;
+use App\Services\EmailTemplateSettingsService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -19,19 +20,23 @@ class AppointmentRejection extends Mailable
 
     public function envelope(): Envelope
     {
-        $subject = $this->appointment->confirmed_at
-            ? 'Terminstornierung'
-            : 'Ihre Terminanfrage';
+        $rendered = app(EmailTemplateSettingsService::class)->renderRejection($this->appointment);
 
         return new Envelope(
-            subject: $subject,
+            subject: $rendered['subject'],
         );
     }
 
     public function content(): Content
     {
+        $rendered = app(EmailTemplateSettingsService::class)->renderRejection($this->appointment);
+
         return new Content(
-            view: 'emails.appointment-rejection',
+            view: 'emails.dynamic',
+            with: [
+                'title' => $rendered['subject'],
+                'body' => $rendered['body'],
+            ],
         );
     }
 }
