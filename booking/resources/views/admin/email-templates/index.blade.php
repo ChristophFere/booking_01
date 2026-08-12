@@ -18,9 +18,9 @@
             </p>
         </div>
 
-        <form method="POST" action="{{ route('admin.email-templates.update') }}" class="space-y-6">
+        <form method="POST" action="{{ route('admin.email-templates.update') }}" id="email-templates-form" class="space-y-6">
             @csrf
-            @method('PUT')
+            <input type="hidden" name="bodies_encoded" value="0" id="bodies_encoded">
 
             <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <h2 class="text-base font-semibold text-slate-900">Terminbestätigung (Zusage)</h2>
@@ -117,4 +117,30 @@
             </button>
         </form>
     </div>
+
+    <script>
+        document.getElementById('email-templates-form')?.addEventListener('submit', (event) => {
+            const form = event.target;
+            const bodyFields = ['confirmation_body', 'rejection_pending_body', 'rejection_cancelled_body'];
+
+            bodyFields.forEach((fieldName) => {
+                const field = form.querySelector(`[name="${fieldName}"]`);
+
+                if (!field) {
+                    return;
+                }
+
+                const bytes = new TextEncoder().encode(field.value);
+                let binary = '';
+
+                bytes.forEach((byte) => {
+                    binary += String.fromCharCode(byte);
+                });
+
+                field.value = btoa(binary);
+            });
+
+            form.querySelector('#bodies_encoded').value = '1';
+        });
+    </script>
 @endsection

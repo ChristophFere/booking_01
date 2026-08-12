@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\Http\Requests\Admin\UpdateEmailTemplateSettingsRequest;
 use App\Models\Appointment;
 use App\Models\Service;
 use App\Services\EmailTemplateSettingsService;
@@ -69,5 +70,25 @@ class EmailTemplateSettingsServiceTest extends TestCase
 
         $this->assertSame('Ihr Termin steht', $service->getConfirmationSubject());
         $this->assertSame('<p>Hallo {{customer_name}}</p>', $service->getConfirmationBody());
+    }
+
+    public function test_update_request_decodes_base64_encoded_bodies(): void
+    {
+        $html = '<p>Hallo {{customer_name}}</p>';
+
+        $request = UpdateEmailTemplateSettingsRequest::create('/admin/email-templates', 'POST', [
+            'bodies_encoded' => '1',
+            'confirmation_subject' => 'Betreff',
+            'confirmation_body' => base64_encode($html),
+            'rejection_pending_subject' => 'Absage',
+            'rejection_pending_body' => base64_encode($html),
+            'rejection_cancelled_subject' => 'Storno',
+            'rejection_cancelled_body' => base64_encode($html),
+        ]);
+
+        $method = new \ReflectionMethod(UpdateEmailTemplateSettingsRequest::class, 'prepareForValidation');
+        $method->invoke($request);
+
+        $this->assertSame($html, $request->input('confirmation_body'));
     }
 }

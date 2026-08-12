@@ -11,6 +11,19 @@ class UpdateEmailTemplateSettingsRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if (! $this->boolean('bodies_encoded')) {
+            return;
+        }
+
+        $this->merge([
+            'confirmation_body' => $this->decodeBody($this->input('confirmation_body')),
+            'rejection_pending_body' => $this->decodeBody($this->input('rejection_pending_body')),
+            'rejection_cancelled_body' => $this->decodeBody($this->input('rejection_cancelled_body')),
+        ]);
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -35,5 +48,16 @@ class UpdateEmailTemplateSettingsRequest extends FormRequest
             '*.required' => 'Dieses Feld ist erforderlich.',
             '*.max' => 'Der eingegebene Text ist zu lang.',
         ];
+    }
+
+    private function decodeBody(?string $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return $value;
+        }
+
+        $decoded = base64_decode($value, true);
+
+        return $decoded !== false ? $decoded : $value;
     }
 }
